@@ -1,0 +1,6 @@
+.clangd/
+compile_commands.json
+subprojects/*/
+build/
+buildwin/
+.cache
