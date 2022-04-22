@@ -48,13 +48,17 @@ args = cc.get_supported_arguments([
 	# debatable whether the warnings are actually useful
 	# '-Wconversion',
 	# '-Wno-float-conversion',
+
+	'-D_POSIX_C_SOURCE=200112L',
 ])
 
 # defines
-args += []
+args += ['-Wno-error']
+
+add_project_arguments(args, language: 'c')
 
 if get_option('buildtype') == 'debug'
-	# highly useful for debugging but has impact on performance
+	# put debugging stuff here
 endif
 
 # TODO: yeah, this needs some love
@@ -79,6 +83,7 @@ dep_dlg = dependency('dlg',
 if disable_dlg
 	warning('disabling dlg')
 endif
+dep_gl = dependency('gl', required: true)
 
 src = files(
 	# main sources for everything
@@ -114,12 +119,12 @@ endif
 
 if build_machine.system() == 'windows'
 	# TODO add as install script via meson.add_install_script?
-	configure_file(
-		input: 'register_layer.bat.in',
-		output: 'register_layer.bat',
-		install: false,
-		copy: true,
-	)
+# 	configure_file(
+# 		input: 'register_layer.bat.in',
+# 		output: 'register_layer.bat',
+# 		install: false,
+# 		copy: true,
+# 	)
 endif
 
 subdir('src')
