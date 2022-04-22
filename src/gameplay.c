@@ -18,8 +18,8 @@
 long time = 0;
 int sleep_time = 1;
 struct timeval stopt, startt, overallt;
-bool quit = false;
 
+struct GameObject gos[] = {{player, 0., 100}, {enemy, 10.,0}};
 
 
 //// end globals
@@ -45,18 +45,18 @@ void sleep_ms(int milliseconds)
 
 void io_init() {
 
-    input = mmap(0, 1, PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0);
+    shm = (struct SharedMem*)mmap(0, sizeof(struct SharedMem), PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0);
 
 }
 
 void gameplay_init() {
     // spawn objects
-    
+//     shm->gos[0].pos = 0.;
 }
 
 void gameplay_loop() {
-    while(quit == false) {
-        printf("\n%f\n", gos[0].pos);
+    while(shm->quit == false) {
+        printf("\n%f\n", shm->gos[0].pos);
         sleep_ms(sleep_time);
     }
 }

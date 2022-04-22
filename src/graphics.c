@@ -20,7 +20,6 @@
 
 #define GL_FRAMEBUFFER_SRGB 0x8DB9
 
-static bool run = true;
 static bool premult = false;
 
 
@@ -42,7 +41,7 @@ static void window_draw(struct swa_window* win) {
 }
 
 static void window_close(struct swa_window* win) {
-	run = false;
+	shm->quit = true;
 }
 
 static void window_mouse_button(struct swa_window* win,
@@ -57,7 +56,7 @@ static void window_key(struct swa_window* win, const struct swa_key_event* ev) {
 	//dlg_trace("key: %d %d, utf8: %s", ev->keycode, ev->pressed, ev->utf8 ? ev->utf8 : "<null>");
 	if(ev->pressed && ev->keycode == swa_key_escape) {
 		dlg_info("Escape pressed, exiting");
-		run = false;
+		shm->quit = true;
 	}
 }
 
@@ -120,7 +119,7 @@ int main() {
 	dlg_info("OpenGL version: %s", glGetString(GL_VERSION));
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
-	while(run) {
+	while(shm->quit == false) {
 		if(!swa_display_dispatch(dpy, true)) {
 			break;
 		}

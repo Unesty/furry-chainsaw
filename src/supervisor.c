@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -14,10 +15,12 @@
 
 // we can add child process signal handlers
 
-int gameplay_pid, graphics_pid, sound_pid;
+// TODO: supervision
+// struct Pids {
+//     int* gameplay, graphics, sound;
+// }*pids;
 
-int main() {
-
+int main(int argc, char** argv, char** envp) {
     // init shm
     inpname = "/furrychainsaw_input0";
     inpfd = shm_open(inpname, O_CREAT|O_EXCL|O_RDWR, S_IRUSR | S_IWUSR);
@@ -28,15 +31,21 @@ int main() {
     if (ftruncate(inpfd, 1) == -1) {
         printf("can't truncate shm\n");
     }
-    input = mmap(0, 1, PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0);
-    if (input == MAP_FAILED) {
+    shm = (struct SharedMem*)mmap(0, sizeof(struct SharedMem), PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0);
+    if (shm == MAP_FAILED) {
         printf("mmap failed\n");
     }
+//     pids = (struct Pids*)mmap(0, sizeof(struct Pids), PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, inpfd, 0);
     // run gameplay
-//     gameplay_pid =
+    if(!fork()) {
+        execvpe("src/gameplay", argv, envp);
+//         pids.gameplay =
+    }
     // run graphics
-//     graphics_pid =
+
+//         pids.graphics =
     // run sound
-//     sound_pid =
+
+//         pids.sound =
     // wait
 }
