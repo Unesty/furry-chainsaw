@@ -84,6 +84,11 @@ if disable_dlg
 	warning('disabling dlg')
 endif
 dep_gl = dependency('gl', required: true)
+cmake = import('cmake')
+opt_var = cmake.subproject_options()
+opt_var.append_compile_args('c','-Wno-error')
+subproj_libsoundio = cmake.subproject('libsoundio', options: opt_var)
+dep_libsoundio = subproj_libsoundio.dependency('libsoundio_static')
 
 src = files(
 	# main sources for everything
@@ -128,3 +133,9 @@ if build_machine.system() == 'windows'
 endif
 
 subdir('src')
+
+
+supervisor = build_target('supervisor',
+	'src/supervisor.c',
+	target_type: 'executable',
+	dependencies: [])

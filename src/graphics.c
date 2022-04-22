@@ -3,6 +3,7 @@
 #include <dlg/dlg.h>
 #include <string.h>
 #include <stdlib.h>
+#include "shared.h"
 
 // this is important as a msvc workaround: their gl.h header is
 // broken windows.h has to be included first (which is pulled by stdlib.h)
