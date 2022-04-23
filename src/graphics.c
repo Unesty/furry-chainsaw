@@ -3,7 +3,13 @@
 #include <dlg/dlg.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/fcntl.h>
+#include <sys/stat.h>
 #include "shared.h"
+#define CGLTF_IMPLEMENTATION
+#include "cgltf.h"
 
 // this is important as a msvc workaround: their gl.h header is
 // broken windows.h has to be included first (which is pulled by stdlib.h)
@@ -22,7 +28,28 @@
 
 static bool premult = false;
 
+void load_models() {
+	cgltf_options options = {0};
+	cgltf_data* data = NULL;
+	cgltf_result result = cgltf_parse_file(&options, "CPU.glb", &data);
+	if (result == cgltf_result_success)
+	{
+		/* TODO make awesome stuff */
+		// load vertices
+		// load textures
+		cgltf_free(data);
+	}
+}
 
+void game_init() {
+	load_models();
+}
+
+void io_init() {
+	inpfd = shm_open(inpname, O_CREAT|O_EXCL|O_RDWR, S_IRUSR | S_IWUSR);
+	shm = (struct SharedMem*)mmap(0, sizeof(struct SharedMem), PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0); // somehow it works without shmopen
+	shm->pids.graphics = getpid();
+}
 
 static void window_draw(struct swa_window* win) {
 	dlg_info("draw");
@@ -41,7 +68,7 @@ static void window_draw(struct swa_window* win) {
 }
 
 static void window_close(struct swa_window* win) {
-	shm->quit = true;
+	shm->run = false;
 }
 
 static void window_mouse_button(struct swa_window* win,
@@ -56,7 +83,7 @@ static void window_key(struct swa_window* win, const struct swa_key_event* ev) {
 	//dlg_trace("key: %d %d, utf8: %s", ev->keycode, ev->pressed, ev->utf8 ? ev->utf8 : "<null>");
 	if(ev->pressed && ev->keycode == swa_key_escape) {
 		dlg_info("Escape pressed, exiting");
-		shm->quit = true;
+		shm->run = false;
 	}
 }
 
@@ -119,7 +146,9 @@ int main() {
 	dlg_info("OpenGL version: %s", glGetString(GL_VERSION));
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
-	while(shm->quit == false) {
+	game_init();
+
+	while(shm->run) {
 		if(!swa_display_dispatch(dpy, true)) {
 			break;
 		}

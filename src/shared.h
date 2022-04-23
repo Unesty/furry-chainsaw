@@ -3,11 +3,16 @@
 enum GOType {
     player,
     enemy,
+    interactive,
 };
 struct GameObject {
     enum GOType type;
     float pos;
-    int hp;
+    bool hidden;
+    char model[30];
+};
+struct Pids {
+    int gameplay, graphics, sound;
 };
 struct SharedMem {
 //////////////////////////////////////////
@@ -27,7 +32,9 @@ struct GameObject gos[2]; // array of all GameObject
 
     char* input; // will be array with size 1 byte after mmap
 
-    bool quit;
+    bool run;
+
+    struct Pids pids;
 //
 //////////////////////////////////////////
 }*shm;
