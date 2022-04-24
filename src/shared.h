@@ -14,6 +14,11 @@ struct GameObject {
 struct Pids {
     int gameplay, graphics, sound;
 };
+enum Inputs {
+    inp_none,
+    inp_right,
+    inp_left,
+};
 struct SharedMem {
 //////////////////////////////////////////
 // gameplay
@@ -30,7 +35,7 @@ struct GameObject gos[2]; // array of all GameObject
 // communication with other processes
 
 
-    char* input; // will be array with size 1 byte after mmap
+    enum Inputs input;
 
     bool run;
 

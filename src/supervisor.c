@@ -38,22 +38,27 @@ int main(int argc, char** argv, char** envp) {
         printf("mmap failed\n");
     }
 //     pids = (struct Pids*)mmap(0, sizeof(struct Pids), PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, inpfd, 0);
-    char* newargv[] = {"gameplay", inpname, NULL};
     // run gameplay
     if(fork() == 0) {
+        char* newargv[] = {"gameplay", inpname, NULL};
         execvpe("src/gameplay", newargv, envp);
+        printf("failed to open gameplay executable\n");
+        sleep(100);
 //         pids.gameplay =
     }
     // run graphics
     if(fork() == 0) {
+        char* newargv[] = {"graphics", inpname, NULL};
         execvpe("src/graphics", newargv, envp);
+        printf("failed to open graphics executable\n");
+        sleep(100);
 //         pids.graphics =
     }
     // run sound
 
 //         pids.sound =
     // wait
-    sleep(10);
+    sleep(1);
     printf("%d", shm->pids.graphics);
     wait(&shm->pids.graphics);
     wait(&shm->pids.gameplay);

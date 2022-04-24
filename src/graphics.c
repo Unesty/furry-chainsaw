@@ -46,13 +46,19 @@ void game_init() {
 }
 
 void io_init() {
-	inpfd = shm_open(inpname, O_CREAT|O_EXCL|O_RDWR, S_IRUSR | S_IWUSR);
+	inpfd = shm_open(inpname, O_RDWR, S_IRUSR | S_IWUSR);
+	if (inpfd == -1) {
+        dlg_error("can't open shm %s\n", inpname);
+    }
 	shm = (struct SharedMem*)mmap(0, sizeof(struct SharedMem), PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0); // somehow it works without shmopen
+	if (shm == MAP_FAILED) {
+        dlg_error("mmap failed\n");
+    }
 	shm->pids.graphics = getpid();
+	dlg_info("grpid %d", shm->pids.graphics);
 }
 
 static void window_draw(struct swa_window* win) {
-	dlg_info("draw");
 
 	float alpha = 0.1f;
 	float mult = premult ? alpha : 1.f;
@@ -85,6 +91,11 @@ static void window_key(struct swa_window* win, const struct swa_key_event* ev) {
 		dlg_info("Escape pressed, exiting");
 		shm->run = false;
 	}
+	if(ev->keycode == swa_key_a) {
+		shm->input = inp_left;
+	} else if(ev->keycode == swa_key_d) {
+		shm->input = inp_right;
+	}
 }
 
 static void window_surface_created(struct swa_window* win) {
@@ -100,7 +111,7 @@ static const struct swa_window_listener window_listener = {
 	.surface_created = window_surface_created
 };
 
-int main() {
+int main(int argc, char** argv, char** envp) {
 	struct swa_display* dpy = swa_display_autocreate("swa example-gl");
 	if(!dpy) {
 		dlg_fatal("No swa backend available");
@@ -146,13 +157,18 @@ int main() {
 	dlg_info("OpenGL version: %s", glGetString(GL_VERSION));
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
+	inpname = argv[1];
+	io_init();
 	game_init();
+
 
 	while(shm->run) {
 		if(!swa_display_dispatch(dpy, true)) {
 			break;
 		}
 	}
+
+	dlg_info("exiting");
 
 	swa_window_destroy(win);
 	swa_display_destroy(dpy);

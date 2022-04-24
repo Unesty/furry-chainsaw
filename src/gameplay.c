@@ -16,11 +16,15 @@
 #include "shared.h"
 
 long time = 0;
-int sleep_time = 1000;
+int sleep_time = 1;
 struct timeval stopt, startt, overallt;
-
+//////////////////////////////////////////
+// gameplay
 struct GameObject gos[] = {{player, 0., 100, "player.glb"}, {enemy, 10.,0, "enemy.glb"}};
 
+float player_speed = 0.1;
+// end gameplay
+//////////////////////////////////////////
 
 //// end globals
 //////////////////////////////////////////////
@@ -44,9 +48,17 @@ void sleep_ms(int milliseconds)
 }
 
 void io_init() {
-    inpfd = shm_open(inpname, O_CREAT|O_EXCL|O_RDWR, S_IRUSR | S_IWUSR);
+    printf("shm init\n");
+    inpfd = shm_open(inpname, O_RDWR, S_IRUSR | S_IWUSR);
+    if (inpfd == -1) {
+        printf("can't open shm %s\n", inpname);
+    }
     shm = (struct SharedMem*)mmap(0, sizeof(struct SharedMem), PROT_READ|PROT_WRITE, MAP_SHARED, inpfd, 0); // somehow it works without shmopen
+    if (shm == MAP_FAILED) {
+        printf("mmap failed\n");
+    }
     shm->pids.gameplay = getpid();
+    printf(" %d \n", shm->pids.gameplay);
 }
 
 void gameplay_init() {
@@ -57,13 +69,26 @@ void gameplay_init() {
 void gameplay_loop() {
     printf("\n");
     while(shm->run == true) {
+        if(shm->input == inp_left) {
+            shm->gos[0].pos -= player_speed;
+        }
+        else if(shm->input == inp_right) {
+            shm->gos[0].pos += player_speed;
+        }
+        // crutch because of no release input events
+        {
+            shm->input = inp_none;
+        }
         printf("\b\b\b\b\b\b\b\b\b\b\b\b\b%f", shm->gos[0].pos);
         sleep_ms(sleep_time);
     }
 }
 
-int main() {
+int main(int argc, char** argv, char** enpv) {
+	inpname = argv[1];
     io_init();
+    printf("gmpid %d\n", shm->pids.gameplay);
+    printf("grpid %d\n", shm->pids.graphics);
     gameplay_loop();
 }
 
